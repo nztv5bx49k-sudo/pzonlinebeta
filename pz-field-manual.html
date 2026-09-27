@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Field Manual — Knox County</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#15170f; --panel:#1d2016; --panel2:#242816; --line:#3a3d2c;
+  --ink:#e7e3d3; --ink-dim:#a6a58c; --tape:#c9a227; --blood:#7d2b24; --moss:#5c6b3f;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Source Sans 3',sans-serif;line-height:1.5}
+h1,h2,h3{font-family:'Oswald',sans-serif;margin:0;letter-spacing:.2px}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 18px 60px}
+header.cover{border:2px solid var(--tape);border-radius:2px;padding:20px 18px;margin-bottom:18px;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start;background:
+  repeating-linear-gradient(135deg, var(--panel), var(--panel) 18px, var(--panel2) 18px, var(--panel2) 36px);}
+header.cover .htext{flex:1;min-width:220px}
+header.cover h1{font-size:clamp(26px,5vw,40px);color:var(--ink);text-shadow:2px 2px 0 var(--blood)}
+header.cover p{color:var(--ink-dim);margin:6px 0 0;max-width:60ch}
+.langsw{display:flex;gap:0;border:1px solid var(--tape);border-radius:2px;overflow:hidden;height:32px}
+.langsw button{background:var(--panel2);color:var(--ink-dim);border:none;padding:0 12px;font-family:'Oswald',sans-serif;
+  font-size:13px;cursor:pointer}
+.langsw button.active{background:var(--tape);color:#1a1a12}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+nav.tabs button{background:var(--panel);color:var(--ink-dim);border:1px solid var(--line);
+  padding:9px 14px;border-radius:2px;font-family:'Oswald',sans-serif;font-size:14px;cursor:pointer}
+nav.tabs button.active{background:var(--tape);color:#1a1a12;border-color:var(--tape)}
+section.pane{display:none;background:var(--panel);border:1px solid var(--line);border-radius:2px;padding:18px}
+section.pane.active{display:block}
+.grid2{display:grid;grid-template-columns:1.3fr .9fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.mapbox{position:relative;border:1px solid var(--line);background:#1a1d13;overflow:auto}
+svg{display:block;width:100%;height:auto}
+.marker{cursor:pointer}
+.marker circle{fill:var(--tape);stroke:#000;stroke-width:1}
+.marker.danger circle{fill:var(--blood)}
+.marker.safe circle{fill:var(--moss)}
+.marker text{fill:var(--ink);font-size:9px;font-family:'Source Sans 3',sans-serif}
+#mapinfo{border:1px solid var(--line);padding:12px;min-height:120px}
+#mapinfo h3{color:var(--tape);margin-bottom:6px}
+.legend{display:flex;gap:14px;margin-top:8px;font-size:13px;color:var(--ink-dim)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+input[type=text]{width:100%;background:#101208;border:1px solid var(--line);color:var(--ink);
+  padding:9px 10px;border-radius:2px;font-family:inherit;margin-bottom:12px}
+select{background:#101208;border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:2px;
+  font-family:inherit;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--tape);font-family:'Oswald',sans-serif;font-weight:600}
+tr.itemrow{cursor:pointer}
+tr.itemrow:hover{background:var(--panel2)}
+tr.itemrow.selected{background:var(--panel2);border-left:3px solid var(--tape)}
+#itemdetail{border:1px solid var(--line);padding:14px;margin-top:12px}
+#itemdetail h3{color:var(--tape);margin-bottom:8px}
+#itemdetail p{margin:8px 0}
+.icon{display:inline-block;width:1.3em;text-align:center;filter:saturate(.85)}
+.tag{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:2px;
+  padding:2px 7px;font-size:12px;color:var(--ink-dim);margin-right:5px}
+.toprow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.toprow input{flex:1;min-width:160px}
+.traitlist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:600px){.traitlist{grid-template-columns:1fr}}
+label.trait{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);
+  padding:8px 10px;border-radius:2px;background:#101208;font-size:14px}
+label.trait span.cost{color:var(--ink-dim);font-size:12px}
+label.trait.pos span.cost{color:var(--moss)}
+label.trait.neg span.cost{color:var(--blood)}
+#pointbar{border:1px solid var(--line);padding:12px;margin-top:14px;font-family:'Oswald',sans-serif}
+#pointbar .num{font-size:26px}
+.ok{color:var(--moss)} .bad{color:var(--blood)}
+#warnings{margin-top:8px;font-size:13px;color:var(--tape)}
+footer{color:var(--ink-dim);font-size:12px;text-align:center;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="cover">
+    <div class="htext">
+      <h1 id="t_title">Field Manual — Knox County</h1>
+      <p id="t_sub">Un prototip: bază de iteme detaliată, hartă de teren și planificator de supraviețuitor.</p>
+    </div>
+    <div class="langsw">
+      <button data-lang="ro" class="active" id="btn_ro">RO</button>
+      <button data-lang="en" id="btn_en">EN</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button data-pane="items" class="active" id="t_tab_items">Iteme &amp; Crafting</button>
+    <button data-pane="map" id="t_tab_map">Hartă</button>
+    <button data-pane="builder" id="t_tab_builder">Planificator supraviețuitor</button>
+    <button data-pane="create" id="t_tab_create">Creează hartă</button>
+  </nav>
+
+  <section id="items" class="pane active">
+    <div class="toprow">
+      <input type="text" id="itemsearch" placeholder="Caută item...">
+      <select id="catfilter"></select>
+    </div>
+    <div class="grid2">
+      <div>
+        <table>
+          <thead><tr><th id="th_name">Item</th><th id="th_cat">Categorie</th><th id="th_w">Greutate</th></tr></thead>
+          <tbody id="itembody"></tbody>
+        </table>
+      </div>
+      <div>
+        <div id="itemdetail"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="map" class="pane">
+    <div class="grid2">
+      <div>
+        <div class="toprow" style="margin-bottom:10px">
+          <select id="townfilter"></select>
+        </div>
+        <div class="mapbox">
+          <svg id="mapsvg" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+            <rect width="900" height="500" fill="#1a1d13"/>
+            <g stroke="#2b2e1f" stroke-width="1">
+              <line x1="0" y1="125" x2="900" y2="125"/><line x1="0" y1="250" x2="900" y2="250"/><line x1="0" y1="375" x2="900" y2="375"/>
+              <line x1="225" y1="0" x2="225" y2="500"/><line x1="450" y1="0" x2="450" y2="500"/><line x1="675" y1="0" x2="675" y2="500"/>
+            </g>
+            <g id="townlabels" font-family="Oswald, sans-serif" font-size="13" fill="#5c5f4a"></g>
+          </svg>
+        </div>
+        <p id="t_mapnote" style="font-size:12px;color:var(--ink-dim);margin-top:8px">Schemă stilizată a Knox County (poziții relative), nu o copie exactă a hărții din joc.</p>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--tape)"></i><span id="leg1">Loot bun</span></span>
+          <span><i class="dot" style="background:var(--blood)"></i><span id="leg2">Zonă periculoasă</span></span>
+          <span><i class="dot" style="background:var(--moss)"></i><span id="leg3">Loc sigur pt. bază</span></span>
+        </div>
+      </div>
+      <div id="mapinfo"></div>
+    </div>
+  </section>
+
+  <section id="builder" class="pane">
+    <h3 style="margin-bottom:10px" id="t_traits_h">Trăsături (traits)</h3>
+    <div class="traitlist" id="traitlist"></div>
+    <div id="pointbar"><span id="t_points">Puncte disponibile:</span> <span class="num" id="pointsnum">0</span></div>
+    <div id="warnings"></div>
+  </section>
+
+  <section id="create" class="pane">
+    <h3 id="t_create_h" style="margin-bottom:6px">Creează hartă</h3>
+    <p id="t_create_hint" style="color:var(--ink-dim);font-size:14px;margin-top:0 0 12px">Click pe hartă pentru a adăuga un marcaj propriu. Se salvează local, în acest browser.</p>
+    <div class="grid2">
+      <div>
+        <div class="mapbox">
+          <svg id="createsvg" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+            <rect width="900" height="500" fill="#1a1d13"/>
+            <g stroke="#2b2e1f" stroke-width="1">
+              <line x1="0" y1="125" x2="900" y2="125"/><line x1="0" y1="250" x2="900" y2="250"/><line x1="0" y1="375" x2="900" y2="375"/>
+              <line x1="225" y1="0" x2="225" y2="500"/><line x1="450" y1="0" x2="450" y2="500"/><line x1="675" y1="0" x2="675" y2="500"/>
+            </g>
+            <g id="custommarkers"></g>
+          </svg>
+        </div>
+        <div class="legend"><span id="t_saved_note">Salvat doar în browserul tău.</span></div>
+      </div>
+      <div>
+        <div id="createform" style="display:none;border:1px solid var(--tape);padding:12px;margin-bottom:12px">
+          <input type="text" id="cf_name" placeholder="Nume marcaj">
+          <input type="text" id="cf_desc" placeholder="Notă / descriere">
+          <select id="cf_type">
+            <option value="tape" id="opt_tape">Loot bun</option>
+            <option value="danger" id="opt_danger">Periculos</option>
+            <option value="safe" id="opt_safe">Sigur pt. bază</option>
+          </select>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="cf_add" style="background:var(--tape);color:#1a1a12;border:none;padding:8px 14px;border-radius:2px;font-family:'Oswald',sans-serif;cursor:pointer" >Adaugă</button>
+            <button id="cf_cancel" style="background:var(--panel2);color:var(--ink-dim);border:1px solid var(--line);padding:8px 14px;border-radius:2px;font-family:'Oswald',sans-serif;cursor:pointer">Renunță</button>
+          </div>
+        </div>
+        <div id="customlist"></div>
+        <button id="cf_clear" style="margin-top:12px;background:var(--panel2);color:var(--blood);border:1px solid var(--line);padding:7px 12px;border-radius:2px;font-family:'Oswald',sans-serif;cursor:pointer">Șterge tot</button>
+      </div>
+    </div>
+  </section>
+
+  <footer id="t_footer">Prototip demonstrativ — datele sunt exemple, nu date oficiale din joc.</footer>
+</div>
+
+<script>
+let LANG='ro';
+
+const UI={
+  ro:{title:'Field Manual — Knox County', sub:'Un prototip: bază de iteme detaliată, hartă de teren și planificator de supraviețuitor.',
+    tab_items:'Iteme & Crafting', tab_map:'Hartă', tab_builder:'Planificator supraviețuitor',
+    search:'Caută item...', th_name:'Item', th_cat:'Categorie', th_w:'Greutate',
+    leg1:'Loot bun', leg2:'Zonă periculoasă', leg3:'Loc sigur pt. bază',
+    mapdefault_h:'Selectează un marcaj', mapdefault_p:'Click pe un punct de pe hartă pentru detalii — resurse, risc estimat, note.',
+    mapnote:'Schemă stilizată a Knox County (poziții relative), nu o copie exactă a hărții din joc.', all_towns:'Toate orașele',
+    traits_h:'Trăsături (traits)', points:'Puncte disponibile:', all_cat:'Toate categoriile',
+    recipe:'Rețetă', found:'Unde se găsește', desc:'Descriere', weight:'Greutate',
+    warn_over:'Ai depășit punctele disponibile — renunță la o trăsătură pozitivă sau adaugă un defect.',
+    warn_left:'Mai ai puncte nefolosite — poți adăuga o trăsătură pozitivă.', warn_ok:'Punctaj echilibrat.',
+    footer:'Prototip demonstrativ — datele sunt exemple, nu date oficiale din joc.',
+    detail_hint:'Alege un item din listă pentru descriere completă, rețetă și unde se găsește.',
+    tab_create:'Creează hartă', create_h:'Creează hartă', create_hint:'Click pe hartă pentru a adăuga un marcaj propriu. Se salvează local, în acest browser.',
+    saved_note:'Salvat doar în browserul tău.', ph_name:'Nume marcaj', ph_desc:'Notă / descriere',
+    opt_tape:'Loot bun', opt_danger:'Periculos', opt_safe:'Sigur pt. bază', btn_add:'Adaugă', btn_cancel:'Renunță',
+    btn_clear:'Șterge tot', empty_list:'Nu ai adăugat încă niciun marcaj.', btn_delete:'Șterge',
+    need_name:'Dă-i un nume marcajului înainte să-l adaugi.'},
+  en:{title:'Field Manual — Knox County', sub:'A prototype: detailed item database, area map, and survivor build planner.',
+    tab_items:'Items & Crafting', tab_map:'Map', tab_builder:'Survivor Builder',
+    search:'Search item...', th_name:'Item', th_cat:'Category', th_w:'Weight',
+    leg1:'Good loot', leg2:'Dangerous area', leg3:'Safe base spot',
+    mapdefault_h:'Select a marker', mapdefault_p:'Click a point on the map for details — resources, estimated risk, notes.',
+    mapnote:'A stylized schematic of Knox County (relative positions), not an exact copy of the in-game map.', all_towns:'All towns',
+    traits_h:'Traits', points:'Points available:', all_cat:'All categories',
+    recipe:'Recipe', found:'Where to find', desc:'Description', weight:'Weight',
+    warn_over:'You have exceeded your points — drop a positive trait or add a flaw.',
+    warn_left:'You still have unused points — you could add a positive trait.', warn_ok:'Balanced build.',
+    footer:'Demo prototype — the data is sample content, not official game data.',
+    detail_hint:'Pick an item from the list for its full description, recipe, and where to find it.',
+    tab_create:'Create Map', create_h:'Create Map', create_hint:'Click the map to add your own marker. Saved locally in this browser.',
+    saved_note:'Saved only in your browser.', ph_name:'Marker name', ph_desc:'Note / description',
+    opt_tape:'Good loot', opt_danger:'Dangerous', opt_safe:'Safe base spot', btn_add:'Add', btn_cancel:'Cancel',
+    btn_clear:'Clear all', empty_list:"You haven't added any markers yet.", btn_delete:'Delete',
+    need_name:'Give the marker a name before adding it.'}
+};
+
+const items=[
+ {icon:'🩹', cat:{ro:'Medical',en:'Medical'}, name:{ro:'Bandaj',en:'Bandage'}, weight:0.1,
+  desc:{ro:'Material de bază pentru pansat răni și opri sângerarea. Se murdărește în timp și trebuie schimbat.',
+        en:'Basic wound dressing that stops bleeding. Gets dirty over time and needs replacing.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Farmacii, spitale, dulapuri de baie',en:'Pharmacies, hospitals, bathroom cabinets'}},
+ {icon:'🪓', cat:{ro:'Unealtă / Armă',en:'Tool / Weapon'}, name:{ro:'Topor',en:'Axe'}, weight:2.0,
+  desc:{ro:'Unealtă grea, eficientă la tăiat lemne pentru foc și la doborât zombi din apropiere, deși e lentă.',
+        en:'Heavy tool, efficient for chopping firewood and taking down nearby zombies, though slow to swing.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Magazine hardware, depozite forestiere',en:'Hardware stores, forestry sheds'}},
+ {icon:'🔩', cat:{ro:'Material',en:'Material'}, name:{ro:'Tablă de oțel',en:'Sheet Metal'}, weight:3.0,
+  desc:{ro:'Folosită pentru a bara ferestre și uși sau ca material la construcții mai avansate.',
+        en:'Used to board up windows and doors, or as a material for more advanced construction.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Depozite auto, fabrici',en:'Auto shops, factories'}},
+ {icon:'🗡️', cat:{ro:'Armă improvizată',en:'Improvised weapon'}, name:{ro:'Bară metalică ascuțită',en:'Sharpened Metal Pole'}, weight:2.0,
+  desc:{ro:'Armă de împuns cu rază bună, eficientă contra unui singur zombi dar fragilă în timp.',
+        en:'A stabbing weapon with good reach, effective against a single zombie but wears down over time.'},
+  recipe:{ro:'1 bară metalică + piatră de ascuțit',en:'1 metal pole + whetstone'},
+  found:{ro:'Se construiește (crafting)',en:'Crafted item'}},
+ {icon:'📌', cat:{ro:'Material',en:'Material'}, name:{ro:'Cuie',en:'Nails'}, weight:0.1,
+  desc:{ro:'Esențiale pentru baricadarea clădirilor și pentru multe rețete de tâmplărie.',
+        en:'Essential for barricading buildings and many carpentry recipes.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Magazine hardware, cutii de scule',en:'Hardware stores, toolboxes'}},
+ {icon:'🎒', cat:{ro:'Container',en:'Container'}, name:{ro:'Rucsac de drumeție',en:'Hiking Bag'}, weight:1.0,
+  desc:{ro:'Capacitate mare de transport, ideal pentru expediții lungi de loot departe de bază.',
+        en:'High carry capacity, ideal for long looting runs away from base.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Magazine outdoor, case izolate',en:'Outdoor stores, isolated houses'}},
+ {icon:'💊', cat:{ro:'Medical',en:'Medical'}, name:{ro:'Antibiotice',en:'Antibiotics'}, weight:0.2,
+  desc:{ro:'Tratează infecțiile provocate de răni netratate; nu vindecă o mușcătură de zombi.',
+        en:'Treats infections from untreated wounds; does not cure a zombie bite.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Spitale, cabinete veterinare',en:'Hospitals, veterinary offices'}},
+ {icon:'🪵', cat:{ro:'Componentă crafting',en:'Crafting component'}, name:{ro:'Coadă de topor',en:'Hatchet Handle'}, weight:0.5,
+  desc:{ro:'Componentă din lemn folosită la repararea sau construirea uneltelor cu tăiș.',
+        en:'A wooden component used to repair or build edged tools.'},
+  recipe:{ro:'Se taie dintr-o creangă cu un cuțit',en:'Whittled from a branch with a knife'},
+  found:{ro:'Se construiește (crafting)',en:'Crafted item'}},
+ {icon:'🔪', cat:{ro:'Unealtă',en:'Tool'}, name:{ro:'Cuțit de bucătărie',en:'Kitchen Knife'}, weight:0.3,
+  desc:{ro:'Rapid, ușor, bun la spart geamuri de mașină sau la rețete de crafting care cer o lamă.',
+        en:'Fast and light; good for breaking car windows or crafting recipes that need a blade.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Bucătării, restaurante',en:'Kitchens, restaurants'}},
+ {icon:'🎞️', cat:{ro:'Material',en:'Material'}, name:{ro:'Bandă adezivă industrială',en:'Duct Tape'}, weight:0.3,
+  desc:{ro:'Foarte versatilă — repară haine, fixează arme improvizate, sigilează containere.',
+        en:'Highly versatile — repairs clothing, fixes improvised weapons, seals containers.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Garaje, magazine hardware',en:'Garages, hardware stores'}},
+ {icon:'🍲', cat:{ro:'Gătit',en:'Cooking'}, name:{ro:'Oală de gătit',en:'Cooking Pot'}, weight:1.5,
+  desc:{ro:'Necesară pentru rețete gătite pe foc sau aragaz, precum tocănițe și supe.',
+        en:'Needed for stove or campfire recipes such as stews and soups.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Bucătării, magazine de menaj',en:'Kitchens, homeware stores'}},
+ {icon:'🪛', cat:{ro:'Unealtă',en:'Tool'}, name:{ro:'Șurubelniță',en:'Screwdriver'}, weight:0.5,
+  desc:{ro:'Folosită la demontarea generatoarelor, mașinilor și altor obiecte mecanice pentru piese.',
+        en:'Used to disassemble generators, vehicles and other mechanical items for parts.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Magazine hardware, garaje',en:'Hardware stores, garages'}},
+ {icon:'🧥', cat:{ro:'Îmbrăcăminte',en:'Clothing'}, name:{ro:'Pelerină de ploaie',en:'Rain Coat'}, weight:0.5,
+  desc:{ro:'Protejează de ploaie, reducând riscul de a răci sau a te îmbolnăvi pe vreme rea.',
+        en:'Protects from rain, lowering the risk of catching a cold in bad weather.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Magazine de haine, case',en:'Clothing stores, houses'}},
+ {icon:'🔥', cat:{ro:'Unealtă',en:'Tool'}, name:{ro:'Arzător cu propan',en:'Propane Torch'}, weight:1.0,
+  desc:{ro:'Sursă de foc mobilă și sigură, utilă pentru gătit sau pentru rețete avansate de metalurgie.',
+        en:'A safe, portable heat source, useful for cooking or advanced metalworking recipes.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Magazine hardware, camping',en:'Hardware stores, camping shops'}},
+ {icon:'🎣', cat:{ro:'Pescuit',en:'Fishing'}, name:{ro:'Plasă de pescuit',en:'Fishing Net'}, weight:2.0,
+  desc:{ro:'Permite prinderea peștilor fără trestie, o sursă bună și constantă de hrană lângă apă.',
+        en:'Allows catching fish without a rod — a steady, reliable food source near water.'},
+  recipe:{ro:'—',en:'—'}, found:{ro:'Magazine outdoor, docuri',en:'Outdoor stores, docks'}},
+ {icon:'🟤', cat:{ro:'Componentă crafting',en:'Crafting component'}, name:{ro:'Fâșii de piele',en:'Leather Strips'}, weight:0.1,
+  desc:{ro:'Se obțin din piele tăbăcită și se folosesc pentru legături în multe rețete de crafting.',
+        en:'Made from tanned leather, used as bindings in many crafting recipes.'},
+  recipe:{ro:'Piele tăbăcită + cuțit',en:'Tanned leather + knife'},
+  found:{ro:'Se construiește (crafting)',en:'Crafted item'}}
+];
+
+const markers=[
+  // Louisville — huge late-game city, north-east
+  {x:760,y:70,type:'danger',town:'Louisville', ro:{name:'Louisville — Centru',info:'Cel mai mare oraș din Knox County, loot excelent (magazine, arme) dar densitate uriașă de zombi. Doar pentru veterani.'},
+    en:{name:'Louisville — Downtown',info:'The biggest city in Knox County, excellent loot (stores, guns) but massive zombie density. Veteran runs only.'}},
+  {x:820,y:130,type:'danger',town:'Louisville', ro:{name:'Louisville — Port',info:'Zonă industrială și doc, utilă pentru piese de mașină, dar aproape de mulțimi mari.'},
+    en:{name:'Louisville — Docks',info:'Industrial and dock area, good for car parts, but close to large hordes.'}},
+  // Riverside — north
+  {x:560,y:60,type:'tape',town:'Riverside', ro:{name:'Riverside — Centru',info:'Oraș mic-mediu de nord, loot decent și zombi moderați, bun pentru early-mid game.'},
+    en:{name:'Riverside — Center',info:'Small-to-medium northern town, decent loot and moderate zombies, good early-mid game.'}},
+  {x:600,y:110,type:'safe',town:'Riverside', ro:{name:'Riverside — Cartier rezidențial',info:'Case izolate lângă apă, bune pentru o bază liniștită.'},
+    en:{name:'Riverside — Suburbs',info:'Isolated houses near the water, good for a quiet base.'}},
+  // Muldraugh — central-north
+  {x:430,y:150,type:'danger',town:'Muldraugh', ro:{name:'Muldraugh — Centru',info:"Densitate mare de zombi, dar magazine bogate (Spiffo's, hardware store)."},
+    en:{name:'Muldraugh — Downtown',info:"High zombie density, but loot-rich stores (Spiffo's, hardware store)."}},
+  {x:470,y:200,type:'danger',town:'Muldraugh', ro:{name:'Spital Muldraugh',info:'Loot medical excelent, dar foarte periculos — mulți zombi în interior.'},
+    en:{name:'Muldraugh Hospital',info:'Excellent medical loot, but very dangerous — heavily infested.'}},
+  {x:390,y:190,type:'safe',town:'Muldraugh', ro:{name:'Fermă West Point Rd.',info:'Teren deschis, ușor de apărat, aproape de apă și pământ arabil.'},
+    en:{name:'West Point Rd. Farm',info:'Open ground, easy to defend, close to water and farmland.'}},
+  // West Point — south of Muldraugh
+  {x:440,y:280,type:'tape',town:'West Point', ro:{name:'West Point — Armurărie',info:'Arme, muniție, unelte de tăbăcărie — una din cele mai bune surse de arme din joc.'},
+    en:{name:'West Point — Gun Store',info:'Weapons, ammo, tanning tools — one of the best gun sources in the game.'}},
+  {x:400,y:320,type:'danger',town:'West Point', ro:{name:'West Point — Centru',info:'Oraș de coastă, loot bun dar zombi numeroși în zona comercială.'},
+    en:{name:'West Point — Downtown',info:'Coastal town, good loot but heavy zombies in the commercial strip.'}},
+  {x:460,y:340,type:'safe',town:'West Point', ro:{name:'Cabană izolată',info:'Bază bună la început de joc, departe de centrul aglomerat.'},
+    en:{name:'Isolated Cabin',info:'Good early-game base, far from the crowded downtown.'}},
+  // Dixie — small trailer park south of West Point
+  {x:420,y:390,type:'safe',town:'Dixie', ro:{name:'Dixie — Trailer park',info:'Așezare mică, izolată, zombi puțini — bază bună de tranziție.'},
+    en:{name:'Dixie Trailer Park',info:'Small, isolated settlement, few zombies — good transitional base.'}},
+  // Rosewood — east of West Point
+  {x:560,y:260,type:'tape',town:'Rosewood', ro:{name:'Rosewood — Stație de pompieri',info:'Topoare, unelte și echipament de protecție — clasica bază de start.'},
+    en:{name:'Rosewood Fire Station',info:'Axes, tools and protective gear — the classic starter base.'}},
+  {x:600,y:300,type:'danger',town:'Rosewood', ro:{name:'Rosewood — Centru',info:'Comercial mic, risc moderat-ridicat, loot util pentru consumabile.'},
+    en:{name:'Rosewood — Downtown',info:'Small commercial strip, moderate-high risk, useful consumable loot.'}},
+  // March Ridge — south-east, expanded in B42
+  {x:630,y:380,type:'danger',town:'March Ridge', ro:{name:'March Ridge — Zonă rezidențială',info:'Cartier extins în B42, dens locuit — loot bun de uz casnic, risc ridicat.'},
+    en:{name:'March Ridge — Residential',info:'Expanded in B42, densely populated — good household loot, high risk.'}},
+  {x:670,y:420,type:'tape',town:'March Ridge', ro:{name:'March Ridge — Zonă comercială',info:'Magazine noi adăugate în B42, loot variat.'},
+    en:{name:'March Ridge — Commercial',info:'New stores added in B42, varied loot.'}},
+  // New Build 42 western towns
+  {x:140,y:220,type:'tape',town:'Brandenburg', ro:{name:'Brandenburg — Marina',info:'Oraș nou (B42), zonă de coastă cu debarcader, loot bun dar cele mai mari hoarde din vest.'},
+    en:{name:'Brandenburg — Marina',info:'New B42 town, waterfront with a marina, good loot but the biggest hordes in the west.'}},
+  {x:110,y:280,type:'danger',town:'Brandenburg', ro:{name:'Brandenburg — Centru',info:'Densitate foarte mare de zombi — abordează doar cu echipament bun.'},
+    en:{name:'Brandenburg — Downtown',info:'Very high zombie density — approach only with solid gear.'}},
+  {x:220,y:150,type:'safe',town:'Echo Creek', ro:{name:'Echo Creek — Fermă',info:'Oraș nou (B42), zonă agricolă tip Midwest, ideal pentru creșterea animalelor.'},
+    en:{name:'Echo Creek — Farmland',info:'New B42 town, Midwest-style farmland, ideal for animal husbandry.'}},
+  {x:260,y:190,type:'safe',town:'Echo Creek', ro:{name:'Echo Creek — Grajd',info:'Grajduri și țarcuri existente, foarte bune pentru sistemul nou de animale.'},
+    en:{name:'Echo Creek — Barn',info:'Existing barns and paddocks, great fit for the new animal system.'}},
+  {x:180,y:340,type:'tape',town:'Ekron', ro:{name:'Ekron',info:'Oraș vestic finalizat complet în B42 (era neterminat înainte) — loot proaspăt, puțin explorat.'},
+    en:{name:'Ekron',info:"Western town fully built out in B42 (previously unfinished) — fresh loot, lightly explored."}},
+  {x:250,y:390,type:'tape',town:'Irvington', ro:{name:'Irvington',info:'Oraș nou (B42), zonă mixtă rezidențial-comercială pe partea de vest a hărții.'},
+    en:{name:'Irvington',info:'New B42 town, mixed residential-commercial area on the western side of the map.'}},
+  {x:300,y:440,type:'danger',town:'Dark Wallow', ro:{name:'Dark Wallow',info:'Zonă mlăștinoasă nouă (B42) — vizibilitate redusă, risc mai mare, loot mai rar.'},
+    en:{name:'Dark Wallow',info:'New B42 swamp area — reduced visibility, higher risk, sparser loot.'}}
+];
+
+const towns=[...new Set(markers.map(m=>m.town))];
+
+const traits=[
+  {ro:'Puternic (Strong)', en:'Strong', cost:-6, pos:true},
+  {ro:'Sprinten (Fit)', en:'Fit', cost:-4, pos:true},
+  {ro:'Bine hrănit', en:'Well Fed', cost:-2, pos:true},
+  {ro:'Ochi de vultur', en:'Keen Hearing/Sight', cost:-2, pos:true},
+  {ro:'Obez', en:'Obese', cost:6, pos:false},
+  {ro:'Miop', en:'Near-Sighted', cost:6, pos:false},
+  {ro:'Slab (Weak)', en:'Weak', cost:4, pos:false},
+  {ro:'Fumător', en:'Smoker', cost:4, pos:false},
+  {ro:'Somn agitat', en:'Sleepyhead', cost:2, pos:false},
+  {ro:'Vegetarian', en:'Vegetarian', cost:4, pos:false}
+];
+
+function setLang(l){
+  LANG=l;
+  document.getElementById('btn_ro').classList.toggle('active', l==='ro');
+  document.getElementById('btn_en').classList.toggle('active', l==='en');
+  const u=UI[l];
+  document.getElementById('t_title').textContent=u.title;
+  document.getElementById('t_sub').textContent=u.sub;
+  document.getElementById('t_tab_items').textContent=u.tab_items;
+  document.getElementById('t_tab_map').textContent=u.tab_map;
+  document.getElementById('t_tab_builder').textContent=u.tab_builder;
+  document.getElementById('itemsearch').placeholder=u.search;
+  document.getElementById('th_name').textContent=u.th_name;
+  document.getElementById('th_cat').textContent=u.th_cat;
+  document.getElementById('th_w').textContent=u.th_w;
+  document.getElementById('leg1').textContent=u.leg1;
+  document.getElementById('leg2').textContent=u.leg2;
+  document.getElementById('leg3').textContent=u.leg3;
+  document.getElementById('t_traits_h').textContent=u.traits_h;
+  document.getElementById('t_points').textContent=u.points;
+  document.getElementById('t_footer').textContent=u.footer;
+  document.getElementById('t_tab_create').textContent=u.tab_create;
+  document.getElementById('t_create_h').textContent=u.create_h;
+  document.getElementById('t_create_hint').textContent=u.create_hint;
+  document.getElementById('t_saved_note').textContent=u.saved_note;
+  document.getElementById('cf_name').placeholder=u.ph_name;
+  document.getElementById('cf_desc').placeholder=u.ph_desc;
+  document.getElementById('opt_tape').textContent=u.opt_tape;
+  document.getElementById('opt_danger').textContent=u.opt_danger;
+  document.getElementById('opt_safe').textContent=u.opt_safe;
+  document.getElementById('cf_add').textContent=u.btn_add;
+  document.getElementById('cf_cancel').textContent=u.btn_cancel;
+  document.getElementById('cf_clear').textContent=u.btn_clear;
+  renderCustomList();
+  document.getElementById('mapinfo').innerHTML=`<h3>${u.mapdefault_h}</h3><p>${u.mapdefault_p}</p>`;
+  document.getElementById('t_mapnote').textContent=u.mapnote;
+  document.getElementById('itemdetail').innerHTML=`<h3>${u.th_name}</h3><p>${u.detail_hint}</p>`;
+  populateCatFilter();
+  populateTownFilter();
+  renderItems();
+  renderMarkers();
+  renderTraits();
+  updatePoints();
+}
+
+function populateCatFilter(){
+  const sel=document.getElementById('catfilter');
+  const cats=[...new Set(items.map(it=>it.cat[LANG]))];
+  sel.innerHTML=`<option value="">${UI[LANG].all_cat}</option>`+cats.map(c=>`<option>${c}</option>`).join('');
+}
+
+function renderItems(){
+  const q=(document.getElementById('itemsearch').value||'').toLowerCase();
+  const catq=document.getElementById('catfilter').value;
+  const body=document.getElementById('itembody');
+  body.innerHTML='';
+  items.filter(it=>{
+    const n=it.name[LANG].toLowerCase(), c=it.cat[LANG];
+    return (n.includes(q)||c.toLowerCase().includes(q)) && (!catq || c===catq);
+  }).forEach(it=>{
+    const tr=document.createElement('tr');
+    tr.className='itemrow';
+    tr.innerHTML=`<td><span class="icon">${it.icon}</span> ${it.name[LANG]}</td><td>${it.cat[LANG]}</td><td>${it.weight}</td>`;
+    tr.addEventListener('click',()=>{
+      document.querySelectorAll('#itembody tr').forEach(r=>r.classList.remove('selected'));
+      tr.classList.add('selected');
+      const u=UI[LANG];
+      document.getElementById('itemdetail').innerHTML=
+        `<h3><span class="icon">${it.icon}</span> ${it.name[LANG]}</h3><span class="tag">${it.cat[LANG]}</span><span class="tag">${u.weight}: ${it.weight}</span>
+         <p><strong>${u.desc}:</strong> ${it.desc[LANG]}</p>
+         <p><strong>${u.recipe}:</strong> ${it.recipe[LANG]}</p>
+         <p><strong>${u.found}:</strong> ${it.found[LANG]}</p>`;
+    });
+    body.appendChild(tr);
+  });
+}
+document.getElementById('itemsearch').addEventListener('input',renderItems);
+document.getElementById('catfilter').addEventListener('change',renderItems);
+
+function populateTownFilter(){
+  const sel=document.getElementById('townfilter');
+  const cur=sel.value;
+  sel.innerHTML=`<option value="">${UI[LANG].all_towns}</option>`+towns.map(t=>`<option>${t}</option>`).join('');
+  sel.value=cur||'';
+}
+
+function renderMarkers(){
+  const svg=document.getElementById('mapsvg');
+  svg.querySelectorAll('g.marker').forEach(g=>g.remove());
+  const townq=document.getElementById('townfilter').value;
+  const tl=document.getElementById('townlabels');
+  tl.innerHTML='';
+  const centers={};
+  markers.forEach(m=>{ if(!centers[m.town]){centers[m.town]={x:0,y:0,n:0};} centers[m.town].x+=m.x; centers[m.town].y+=m.y; centers[m.town].n++; });
+  Object.keys(centers).forEach(t=>{
+    const c=centers[t];
+    const dim = townq && townq!==t ? '0.25' : '1';
+    tl.innerHTML+=`<text x="${c.x/c.n}" y="${c.y/c.n-16}" text-anchor="middle" opacity="${dim}">${t}</text>`;
+  });
+  markers.filter(m=>!townq||m.town===townq).forEach(m=>{
+    const d=m[LANG];
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','marker '+(m.type==='danger'?'danger':m.type==='safe'?'safe':''));
+    g.innerHTML=`<circle cx="${m.x}" cy="${m.y}" r="6"/><text x="${m.x+9}" y="${m.y+3}">${d.name}</text>`;
+    g.addEventListener('click',()=>{
+      document.getElementById('mapinfo').innerHTML=`<h3>${d.name}</h3><span class="tag">${m.town}</span><p>${d.info}</p>`;
+    });
+    svg.appendChild(g);
+  });
+}
+document.getElementById('townfilter')?.addEventListener?.('change', renderMarkers);
+
+
+function renderTraits(){
+  const list=document.getElementById('traitlist');
+  const checked=[...list.querySelectorAll('input')].map(c=>c.checked);
+  list.innerHTML='';
+  traits.forEach((t,i)=>{
+    const lab=document.createElement('label');
+    lab.className='trait '+(t.pos?'pos':'neg');
+    lab.innerHTML=`<span>${t[LANG]}</span><span class="cost">${t.cost>0?'+':''}${t.cost} <input type="checkbox" data-cost="${t.cost}" style="margin-left:8px"></span>`;
+    list.appendChild(lab);
+  });
+  [...list.querySelectorAll('input')].forEach((c,i)=>{ c.checked=checked[i]||false; c.addEventListener('change',updatePoints); });
+}
+
+function updatePoints(){
+  let total=0;
+  document.querySelectorAll('#traitlist input[type=checkbox]').forEach(c=>{ if(c.checked) total+=parseInt(c.dataset.cost); });
+  const el=document.getElementById('pointsnum');
+  el.textContent=total;
+  el.className='num '+(total<0?'bad':'ok');
+  document.getElementById('warnings').textContent = total<0?UI[LANG].warn_over:(total>0?UI[LANG].warn_left:UI[LANG].warn_ok);
+}
+
+document.querySelectorAll('nav.tabs button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('nav.tabs button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('section.pane').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById(b.dataset.pane).classList.add('active');
+  });
+});
+// ---- CUSTOM MAP CREATOR (saved locally per browser) ----
+function loadCustom(){
+  try{
+    const raw=localStorage.getItem('pz_custom_markers');
+    return raw?JSON.parse(raw):[];
+  }catch(e){ return []; }
+}
+function saveCustom(list){
+  try{ localStorage.setItem('pz_custom_markers', JSON.stringify(list)); }catch(e){ /* storage unavailable */ }
+}
+let customMarkers=loadCustom();
+let pendingPoint=null;
+
+document.getElementById('createsvg').addEventListener('click',(e)=>{
+  const svg=e.currentTarget;
+  const pt=svg.createSVGPoint();
+  pt.x=e.clientX; pt.y=e.clientY;
+  const loc=pt.matrixTransform(svg.getScreenCTM().inverse());
+  pendingPoint={x:Math.round(loc.x),y:Math.round(loc.y)};
+  document.getElementById('createform').style.display='block';
+  document.getElementById('cf_name').value='';
+  document.getElementById('cf_desc').value='';
+  document.getElementById('cf_name').focus();
+});
+document.getElementById('cf_cancel').addEventListener('click',()=>{
+  document.getElementById('createform').style.display='none'; pendingPoint=null;
+});
+document.getElementById('cf_add').addEventListener('click',()=>{
+  const name=document.getElementById('cf_name').value.trim();
+  if(!name){ alert(UI[LANG].need_name); return; }
+  const desc=document.getElementById('cf_desc').value.trim();
+  const type=document.getElementById('cf_type').value;
+  if(!pendingPoint) return;
+  customMarkers.push({...pendingPoint,name,desc,type,id:Date.now()});
+  saveCustom(customMarkers);
+  document.getElementById('createform').style.display='none';
+  pendingPoint=null;
+  renderCustomList();
+});
+document.getElementById('cf_clear').addEventListener('click',()=>{
+  customMarkers=[];
+  saveCustom(customMarkers);
+  renderCustomList();
+});
+function renderCustomList(){
+  const g=document.getElementById('custommarkers');
+  g.innerHTML='';
+  customMarkers.forEach(m=>{
+    const cls=m.type==='danger'?'danger':m.type==='safe'?'safe':'';
+    g.innerHTML+=`<g class="marker ${cls}"><circle cx="${m.x}" cy="${m.y}" r="6"/><text x="${m.x+9}" y="${m.y+3}">${m.name}</text></g>`;
+  });
+  const list=document.getElementById('customlist');
+  if(customMarkers.length===0){
+    list.innerHTML=`<p style="color:var(--ink-dim);font-size:14px">${UI[LANG].empty_list}</p>`;
+    return;
+  }
+  list.innerHTML=customMarkers.map(m=>
+    `<div style="border:1px solid var(--line);padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+      <div><strong>${m.name}</strong>${m.desc?'<br><span style="color:var(--ink-dim);font-size:13px">'+m.desc+'</span>':''}</div>
+      <button data-id="${m.id}" class="delbtn" style="background:none;border:1px solid var(--blood);color:var(--blood);border-radius:2px;padding:4px 8px;cursor:pointer">${UI[LANG].btn_delete}</button>
+    </div>`).join('');
+  list.querySelectorAll('.delbtn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      customMarkers=customMarkers.filter(m=>m.id!==parseInt(b.dataset.id));
+      saveCustom(customMarkers);
+      renderCustomList();
+    });
+  });
+}
+
+document.getElementById('btn_ro').addEventListener('click',()=>setLang('ro'));
+document.getElementById('btn_en').addEventListener('click',()=>setLang('en'));
+
+setLang('ro');
+</script>
+</body>
+</html>
